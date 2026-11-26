@@ -305,6 +305,30 @@
 </div>
 
 <script>
+// Fit to short screens: inside the Wix page on a phone the game frame is shorter than the
+// layout needs (~640px). Lay the game out at that height and scale it down to fit, so the
+// whole screen (and the main button) is visible without scrolling. Taps still line up.
+(function(){
+  var DESIGN_H = 640, MAX_W = 460;
+  function fit(){
+    var app = document.getElementById("app"); if (!app) return;
+    var W = window.innerWidth, H = window.innerHeight, s = Math.min(1, H / DESIGN_H), st = app.style;
+    if (s >= 1) {
+      st.cssText = ""; document.documentElement.style.overflow = "";
+      return;
+    }
+    var w = Math.min(MAX_W, W / s);
+    st.position = "absolute"; st.top = "0"; st.margin = "0"; st.maxWidth = "none";
+    st.width = w + "px"; st.height = (H / s) + "px";
+    st.left = Math.max(0, (W - w * s) / 2) + "px";
+    st.transformOrigin = "0 0"; st.transform = "scale(" + s + ")";
+    document.documentElement.style.overflow = "hidden";
+  }
+  fit();
+  window.addEventListener("resize", fit);
+})();
+</script>
+<script>
 (function(){
   "use strict";
 

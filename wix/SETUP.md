@@ -82,7 +82,7 @@ They appear under **Installed** when done. (A leftover "must be installed first"
    Its **Properties & Events** side shows `ID #html1`: change it to `rogiGame`.
 4. Size (right-hand inspector, Design tab):
    - **Desktop:** Responsive behavior **Fixed**, W `420`, H `740`, then the "align center" button so it sits in the middle. (Studio only lets you change the height after switching away from "Scale proportionally".)
-   - **Mobile** breakpoint (phone icon in the top bar): Responsive behavior **Relative width**, X `0`, Y `0`, W `390` (the full mobile canvas), H `667`.
+   - **Mobile** breakpoint (phone icon in the top bar): Responsive behavior **Relative width**, X `0`, Y `0`, W `390` (the full mobile canvas), H `520`. The game scales itself down to fit the frame, and 520 keeps the whole frame on screen below the site header on most phones.
 
 ## 7. Page code
 
