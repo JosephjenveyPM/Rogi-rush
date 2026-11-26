@@ -152,9 +152,17 @@
   }
 
   /* ---------- Overlays ---------- */
-  .overlay{position:absolute;inset:0;z-index:20;background:var(--cream);color:var(--ink);display:flex;flex-direction:column;justify-content:center;
-    padding:26px 24px;overflow-y:auto}
+  .overlay{position:absolute;inset:0;z-index:20;background:var(--cream);color:var(--ink);display:flex;flex-direction:column;
+    padding:26px 24px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  /* margin:auto centres the card when it fits and lets the whole card scroll when it doesn't
+     (justify-content:center would push the top of a tall card out of reach). */
+  .overlay>.card{margin:auto 0}
   .overlay.hidden{display:none}
+  /* Inside the Wix page on a phone: sit the card at the top and use the full width. */
+  @media (max-width:520px){
+    html.embedded .overlay{padding:12px 10px}
+    html.embedded .overlay>.card{margin:0 0 auto}
+  }
   .overlay .card{background:var(--white);border:2px solid var(--line);border-radius:22px;padding:22px 20px;box-shadow:0 8px 24px #3A1A141A}
   .eyebrow{display:inline-block;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--white);font-weight:900;
     background:var(--red);padding:3px 12px;border-radius:999px}
@@ -868,6 +876,7 @@
      Messages are JSON strings: game -> page {source:"rogi-game", type}, page -> game {source:"rogi-host", type}. */
   const Host = (function(){
     const embedded = window.parent && window.parent !== window;
+    if (embedded) document.documentElement.classList.add("embedded");
     let hostOrigin = null, lastGame = null, submitted = false, myNick = null, reqId = 0, pendingReq = null, pendingTimer = null;
     const ERRORS = {
       nickname_length: "Nickname needs 2 to 16 characters.",
