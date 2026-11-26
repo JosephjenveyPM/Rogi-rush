@@ -33,9 +33,23 @@
   li.empty{justify-content:center;color:var(--ink-2);font-weight:700;background:transparent;border-style:dashed}
   li.ph .n,li.ph .s{color:#C9B9A6}
   li.ph .r{background:#E9DCCB}
+  /* Divider, only used on phones where the panel sits below the game (see the media query). */
+  .sep{display:none}
+  /* Phones: the panel is stacked under the game, whose red footer would otherwise run straight into
+     the red header here. Put the panel on a cream band with a divider so the two read as separate blocks.
+     Side by side (desktop and tablet) the frame is 300px wide, so this never applies there. */
+  @media (min-width:340px){
+    body{display:flex;flex-direction:column;background:var(--cream);padding:0 16px 16px}
+    .sep{display:flex;align-items:center;gap:10px;flex:0 0 40px}
+    .sep::before,.sep::after{content:"";flex:1;height:2px;border-radius:2px;background:var(--line)}
+    .sep i{width:8px;height:8px;border-radius:50%;background:var(--red-l)}
+    .sep i:nth-child(2){background:var(--yellow)}
+    .panel{flex:1;height:auto;min-height:0}
+  }
 </style>
 </head>
 <body>
+<div class="sep" aria-hidden="true"><i></i><i></i><i></i></div>
 <div class="panel">
   <div class="head"><h1>Top 10</h1><p>Highest scores this competition</p></div>
   <ol id="list"><li class="empty">Loading scores…</li></ol>
