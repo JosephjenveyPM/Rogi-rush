@@ -965,8 +965,6 @@
   // Initial paint behind the start screen
   S = newState(); S.running = false; renderHUD(); renderPlate(); renderControls();
 
-  // Test hook (harmless in production)
-  window.__rogi = {state: function(){ return S; }, serve: serve, start: startGame, person: personSVG, look: randomLook};
 })();
 </script>
 </body>
