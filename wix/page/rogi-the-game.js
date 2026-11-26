@@ -7,22 +7,45 @@
 import { getLeaderboard, submitScore } from "backend/leaderboard.web";
 
 const GAME = "#rogiGame";
+const BOARD = "#rogiBoard";
+const REFRESH_MS = 60 * 1000; // so other players' new scores show up too
 
 $w.onReady(function () {
   const game = $w(GAME);
+  // The top 10 panel is optional: the page still works if it has been removed.
+  const board = $w(BOARD);
+  const hasBoard = board && typeof board.postMessage === "function";
 
   function send(type, data) {
     game.postMessage(JSON.stringify({ source: "rogi-host", type, ...data }));
   }
 
+  function sendBoard(lb) {
+    if (!hasBoard) return;
+    // Nicknames and scores only.
+    const entries = (lb.entries || []).map((e) => ({ rank: e.rank, nickname: e.nickname, score: e.score }));
+    board.postMessage(JSON.stringify({ source: "rogi-host", type: "leaderboard", error: lb.error, entries }));
+  }
+
   async function sendLeaderboard() {
+    let lb;
     try {
-      const lb = await getLeaderboard();
-      send("leaderboard", lb);
+      lb = await getLeaderboard();
     } catch (err) {
       console.error("Rogi leaderboard failed", err);
-      send("leaderboard", { error: "unavailable", entries: [] });
+      lb = { error: "unavailable", entries: [] };
     }
+    send("leaderboard", lb);
+    sendBoard(lb);
+  }
+
+  if (hasBoard) {
+    board.onMessage((event) => {
+      let msg;
+      try { msg = typeof event.data === "string" ? JSON.parse(event.data) : event.data; } catch (e) { return; }
+      if (msg && msg.source === "rogi-board" && msg.type === "ready") sendLeaderboard();
+    });
+    setInterval(sendLeaderboard, REFRESH_MS);
   }
 
   game.onMessage(async (event) => {
@@ -48,6 +71,7 @@ $w.onReady(function () {
     }
   });
 
-  // In case the game loaded before the page code was ready.
+  // In case the game or the panel loaded before the page code was ready.
   send("hello", {});
+  sendLeaderboard();
 });
