@@ -93,7 +93,7 @@ They appear under **Installed** when done. (A leftover "must be installed first"
 3. Size and position:
    - **Desktop:** Responsive behavior **Fixed**, W `300`, H `740`, X `712`, Y `0` (24px right of the game; the pair is centred on the 1280 canvas).
    - **Tablet:** right margin `12`, so it sits beside the game without overlapping.
-   - **Mobile:** Responsive behavior **Relative width**, W `390`, H `585`, X `0`, Y `520` (directly below the game), and set the **section** height on mobile to `1105`. On phones the panel draws its own cream band and divider, so it doesn't merge with the game's red footer.
+   - **Mobile:** Responsive behavior **Relative width**, W `390`, H `585`, X `0`, Y `520` (directly below the game), and on mobile set the **section** height to `1105` and its background colour to `#FBF5EC` (cream; desktop and tablet stay red). On phones the panel draws its own cream band and divider, so it doesn't merge with the game's red footer.
 
 The panel only shows nicknames and scores. It loads when the page opens, after every saved score, and every 60 seconds.
 
