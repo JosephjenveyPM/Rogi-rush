@@ -11,6 +11,8 @@ The gameplay prototype is finished and play-tested. The job now is to turn it in
 | `index.html` | The complete, working prototype: one self-contained HTML file (HTML, CSS and JS, logos embedded as data URIs). This is the source of truth for gameplay and look. |
 | `rogi-logo-red.png` | Joe's Rogi script logo, red on transparent (used on the start screen). |
 | `rogi-logo-white.png` | Same logo, white on transparent (used in the red footer). |
+| `wix/` | Wix backend code, page code and `SETUP.md` for the leaderboard and embed. |
+| `test/` | Score-validation tests and a local host harness (`host-harness.html`). |
 
 Concept doc (background reading): https://claude.ai/artifact/SwgVoHhgp52a7zexbBPBR4
 
@@ -56,12 +58,12 @@ Concept doc (background reading): https://claude.ai/artifact/SwgVoHhgp52a7zexbBP
 
 ## What's left to build for release
 
-1. **Online leaderboard on Wix:** a CMS collection for scores (nickname, score, orders, best combo, level, competition ID, created date). Show the top scores for the current competition.
-2. **Server-side score checks** so scores can't be faked from the browser. For example, send the game's event log or per-order timings to a Wix backend function that rejects impossible scores. Rate-limit submissions.
-3. **Sign-up to submit a score:** nickname plus email, with an **unticked** marketing opt-in tickbox (UK GDPR). Email must not be shown publicly. One entry per email per competition, but players keep their best score.
+1. **Online leaderboard on Wix** *(first version built: `wix/`)*: a CMS collection for scores (nickname, score, orders, best combo, level, competition ID, created date). Show the top scores for the current competition.
+2. **Server-side score checks** *(basic checks and 20 s rate limit built; replay-based check still to do)* so scores can't be faked from the browser. For example, send the game's event log or per-order timings to a Wix backend function that rejects impossible scores. Rate-limit submissions.
+3. **Sign-up to submit a score** *(form and one-entry-per-email built; check wording with Joe)*: nickname plus email, with an **unticked** marketing opt-in tickbox (UK GDPR). Email must not be shown publicly. One entry per email per competition, but players keep their best score.
 4. **Share card:** an image at the end of each game ("I served 32 orders at Rogi — beat me?") linking back to the Rogi - The Game page.
-5. **Embed on the Wix Studio page:** the game in an HTML embed or custom element, talking to Wix (leaderboard, submission) through `postMessage`, or another approach Wix supports. Check the current Wix docs before choosing.
-6. **Add extra characters:** The Vegan (Sauerkraut & Mushroom, served with crispy onions and without sauce) and The Influencer (any pierogi, very little patience, triple points).
+5. **Embed on the Wix Studio page** *(built: Embed code element + page code via `postMessage`, see `wix/SETUP.md`)*: the game in an HTML embed or custom element, talking to Wix (leaderboard, submission) through `postMessage`, or another approach Wix supports. Check the current Wix docs before choosing.
+6. **Add extra characters:** The Vegan (Sauerkraut & Mushroom, served with crispy onions and without sauce; this differs from the menu on purpose because fried onions aren't vegan) and The Influencer (any pierogi, very little patience, triple points).
 
 ## Before release
 
