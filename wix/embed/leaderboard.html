@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rogi Rush top 10</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+<!--
+  Rogi Rush top 10 leaderboard panel.
+  Goes in a second Embed code element on the "Rogi - The Game" page, with the ID "rogiBoard".
+  The page code (wix/page/rogi-the-game.js) sends it the leaderboard; it never talks to the
+  backend itself and only ever receives nicknames and scores.
+  Messages are JSON strings: panel -> page {source:"rogi-board", type:"ready"},
+  page -> panel {source:"rogi-host", type:"leaderboard", entries:[{rank,nickname,score}]}.
+-->
+<style>
+  :root{--red:#C21F2E;--red-d:#9E1523;--red-l:#D93441;--ink:#3A1A14;--ink-2:#6E4A42;--cream:#FBF5EC;--line:#E9DCCB;--yellow:#FFD43B}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:transparent;font-family:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;color:var(--ink)}
+  .panel{height:100%;display:flex;flex-direction:column;background:var(--cream);border:3px solid var(--red);border-radius:22px;overflow:hidden}
+  .head{background:linear-gradient(180deg,var(--red-l),var(--red));border-bottom:3px solid var(--red-d);color:#fff;padding:12px 16px 10px;text-align:center}
+  .head h1{margin:0;font-size:22px;font-weight:900;letter-spacing:.01em}
+  .head p{margin:2px 0 0;font-size:13px;font-weight:700;opacity:.9}
+  ol{list-style:none;margin:0;padding:10px 12px 12px;flex:1;display:flex;flex-direction:column;gap:6px;overflow:auto}
+  li{display:flex;align-items:center;gap:10px;background:#fff;border:2px solid var(--line);border-radius:14px;padding:7px 12px;font-weight:800;font-size:16px;min-height:38px}
+  .r{flex:0 0 26px;height:26px;border-radius:50%;background:var(--red);color:#fff;display:grid;place-items:center;font-size:13px;font-weight:900}
+  li:first-child:not(.empty) .r{background:var(--yellow);color:var(--ink)}
+  li:first-child:not(.empty){border-color:var(--yellow)}
+  .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .s{font-weight:900;color:var(--red);font-variant-numeric:tabular-nums}
+  li.empty{justify-content:center;color:var(--ink-2);font-weight:700;background:transparent;border-style:dashed}
+  li.ph .n,li.ph .s{color:#C9B9A6}
+  li.ph .r{background:#E9DCCB}
+</style>
+</head>
+<body>
+<div class="panel">
+  <div class="head"><h1>Top 10</h1><p>Highest scores this competition</p></div>
+  <ol id="list"><li class="empty">Loading scores…</li></ol>
+</div>
+<script>
+(function(){
+  var list = document.getElementById("list"), hostOrigin = null;
+  function esc(t){ return String(t).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+  function render(m){
+    if (m.error) { list.innerHTML = '<li class="empty">Leaderboard unavailable right now.</li>'; return; }
+    var e = (m.entries || []).slice(0, 10), html = "";
+    if (!e.length) { list.innerHTML = '<li class="empty">No scores yet. Be the first!</li>'; return; }
+    for (var i = 0; i < 10; i++) {
+      var x = e[i];
+      html += x
+        ? '<li><span class="r">' + (i + 1) + '</span><span class="n">' + esc(x.nickname) + '</span><span class="s">' + Number(x.score).toLocaleString("en-GB") + '</span></li>'
+        : '<li class="ph"><span class="r">' + (i + 1) + '</span><span class="n">Your name here?</span><span class="s">–</span></li>';
+    }
+    list.innerHTML = html;
+  }
+  window.addEventListener("message", function(ev){
+    if (ev.source !== window.parent) return;
+    var m; try { m = typeof ev.data === "string" ? JSON.parse(ev.data) : ev.data; } catch(e) { return; }
+    if (!m || m.source !== "rogi-host") return;
+    if (!hostOrigin && ev.origin && ev.origin !== "null") hostOrigin = ev.origin;
+    if (ev.origin !== hostOrigin) return;
+    if (m.type === "leaderboard") render(m);
+  });
+  if (window.parent !== window) window.parent.postMessage(JSON.stringify({source: "rogi-board", type: "ready"}), "*");
+})();
+</script>
+</body>
+</html>

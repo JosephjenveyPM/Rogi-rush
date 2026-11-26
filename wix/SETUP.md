@@ -7,6 +7,7 @@ How it fits together:
 
 ```
 Game (index.html in an Embed code element, id "rogiGame")
+Top 10 panel (wix/embed/leaderboard.html in an Embed code element, id "rogiBoard")
    ⇅  postMessage (JSON strings)
 Page code (wix/page/rogi-the-game.js)
    ⇅  web methods
@@ -81,8 +82,20 @@ They appear under **Installed** when done. (A leftover "must be installed first"
 3. Set the element's ID: with the element selected, open the code panel at the bottom of the editor (click the page's tab there).
    Its **Properties & Events** side shows `ID #html1`: change it to `rogiGame`.
 4. Size (right-hand inspector, Design tab):
-   - **Desktop:** Responsive behavior **Fixed**, W `420`, H `740`, then the "align center" button so it sits in the middle. (Studio only lets you change the height after switching away from "Scale proportionally".)
+   - **Desktop:** Responsive behavior **Fixed**, W `420`, H `740`, X `268`, Y `0`. (Studio only lets you change the height after switching away from "Scale proportionally".) This leaves room for the top 10 panel on the right.
+   - **Tablet** breakpoint: left margin `12`.
    - **Mobile** breakpoint (phone icon in the top bar): Responsive behavior **Relative width**, X `0`, Y `0`, W `390` (the full mobile canvas), H `520`. The game scales itself down to fit the frame, and 520 keeps the whole frame on screen below the site header on most phones.
+
+## 6b. Add the top 10 panel
+
+1. Add a second **Embed Code** element to the same section, choose **Code**, paste the whole of `wix/embed/leaderboard.html`, then **Apply**. Alt text: "Rogi Rush top 10 leaderboard".
+2. In **Properties & Events**, change its ID to `rogiBoard`.
+3. Size and position:
+   - **Desktop:** Responsive behavior **Fixed**, W `300`, H `740`, X `712`, Y `0` (24px right of the game; the pair is centred on the 1280 canvas).
+   - **Tablet:** right margin `12`, so it sits beside the game without overlapping.
+   - **Mobile:** Responsive behavior **Relative width**, W `358`, H `545`, X `16`, Y `536` (below the game), and set the **section** height on mobile to `1097` so the panel fits above the footer.
+
+The panel only shows nicknames and scores. It loads when the page opens, after every saved score, and every 60 seconds.
 
 ## 7. Page code
 
