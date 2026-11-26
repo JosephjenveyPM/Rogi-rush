@@ -1,0 +1,25 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Rogi host harness</title></head>
+<body style="margin:0;background:#eee">
+<!-- Local stand-in for the Wix page: embeds the game cross-origin and answers like wix/page/rogi-the-game.js. -->
+<iframe id="g" style="width:375px;height:667px;border:0"></iframe>
+<script>
+  const GAME_ORIGIN = new URLSearchParams(location.search).get("game") || "http://127.0.0.1:8002";
+  const f = document.getElementById("g"); f.src = GAME_ORIGIN + "/index.html";
+  window.received = []; window.board = [{rank:1,nickname:"Babcia Basia",score:9000,orders:40,bestCombo:20,level:9}];
+  function send(type, data){ f.contentWindow.postMessage(JSON.stringify(Object.assign({source:"rogi-host", type}, data||{})), GAME_ORIGIN); }
+  window.addEventListener("message", (ev) => {
+    if (ev.origin !== GAME_ORIGIN) return;
+    const m = JSON.parse(ev.data); window.received.push(m);
+    if (m.type === "ready") { send("hello"); send("leaderboard", {entries: board}); }
+    if (m.type === "getLeaderboard") send("leaderboard", {entries: board});
+    if (m.type === "submitScore") {
+      board.push({rank:0, nickname:m.entry.nickname, score:m.entry.game.score});
+      board.sort((a,b)=>b.score-a.score).forEach((e,i)=>e.rank=i+1);
+      const rank = board.find(e=>e.nickname===m.entry.nickname).rank;
+      send("submitResult", {requestId:m.requestId, result:{ok:true, improved:true, best:m.entry.game.score, rank}});
+      send("leaderboard", {entries: board});
+    }
+  });
+</script>
+</body></html>

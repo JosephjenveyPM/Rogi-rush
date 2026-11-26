@@ -180,6 +180,29 @@
   .stats span{font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2);font-weight:800}
   .best{font-size:15px;font-weight:800;color:var(--ink-2)}
   .best.new{color:var(--red)}
+  /* ---------- Leaderboard (only shown when embedded on the Rogi site) ---------- */
+  .lb{margin:14px 0 4px;text-align:left}
+  .lb.hidden,.submit.hidden,.lbnote.hidden{display:none}
+  .lb h3{margin:0 0 8px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:900;color:var(--red);text-align:center}
+  .lb ol{list-style:none;margin:0;padding:0;border:1.5px solid var(--line);border-radius:14px;overflow:hidden;background:var(--cream)}
+  .lb li{display:flex;align-items:center;gap:8px;padding:6px 10px;font-size:14px;font-weight:800;border-top:1px solid var(--line)}
+  .lb li:first-child{border-top:0}
+  .overlay .lb ol li{padding-left:10px;margin:0;counter-increment:none}
+  .overlay .lb ol li::before{content:none}
+  .lb li .r{width:22px;color:var(--ink-2);font-weight:900}
+  .lb li .n{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .lb li .s{font-weight:900;color:var(--ink)}
+  .lb li.me{background:#FFF3C4}
+  .lb .empty{padding:10px;text-align:center;font-size:13.5px;font-weight:700;color:var(--ink-2)}
+  .submit{margin:12px 0 2px;text-align:left}
+  .submit label.f{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;font-weight:900;color:var(--ink-2);margin:8px 0 4px}
+  .submit input[type=text],.submit input[type=email]{width:100%;box-sizing:border-box;border:2px solid var(--line);border-radius:12px;padding:10px 12px;
+    font:800 16px 'Nunito',system-ui,sans-serif;color:var(--ink);background:var(--white)}
+  .submit input:focus{outline:none;border-color:var(--red)}
+  .submit .opt{display:flex;gap:8px;align-items:flex-start;margin:10px 0 2px;font-size:13px;line-height:1.35;font-weight:700;color:var(--ink-2)}
+  .submit .opt input{margin-top:2px;width:18px;height:18px;accent-color:var(--red);flex:none}
+  .submit .err{min-height:18px;margin:6px 0 0;font-size:13px !important;font-weight:800;color:var(--red) !important}
+  .lbnote{margin:8px 0 0 !important;font-size:14px !important;font-weight:800;color:var(--green) !important;text-align:center}
   .pause{position:absolute;inset:0;z-index:18;background:#3A1A1499;display:none;align-items:center;justify-content:center;padding:24px}
   .pause.show{display:flex}
   .pause .card{width:100%;max-width:320px;background:var(--white);border-radius:22px;padding:22px 20px;text-align:center;border:2px solid var(--line)}
@@ -241,7 +264,7 @@
         <li>Wrong order or a customer walks off? That's a life. Three lives and your shift's over.</li>
       </ol>
       <button class="cta" id="playBtn">Start your shift</button>
-      <p class="fine">Prototype. Scores are saved on this device only.</p>
+      <p class="fine" id="startFine">Scores are saved on this device only.</p>
     </div>
   </div>
 
@@ -256,8 +279,19 @@
         <div><b id="statLevel">1</b><span>Level</span></div>
       </div>
       <p class="best" id="bestLine"></p>
+      <form class="submit hidden" id="submitForm" novalidate>
+        <label class="f" for="nickInput">Nickname (shown publicly)</label>
+        <input type="text" id="nickInput" maxlength="16" autocomplete="nickname" required>
+        <label class="f" for="emailInput">Email (private, to contact the winner)</label>
+        <input type="email" id="emailInput" maxlength="254" autocomplete="email" required>
+        <label class="opt"><input type="checkbox" id="optInput"> Send me Rogi news and offers by email. You can unsubscribe at any time.</label>
+        <p class="err" id="submitErr"></p>
+        <button class="cta" type="submit" id="submitBtn">Save my score</button>
+      </form>
+      <p class="lbnote hidden" id="lbNote"></p>
+      <div class="lb hidden" id="lbBox"><h3>Leaderboard</h3><ol id="lbList"></ol></div>
       <button class="cta" id="againBtn">Play again</button>
-      <p class="fine">Leaderboard and share card come in the next version.</p>
+      <p class="fine" id="overFine">Scores are saved on this device only.</p>
     </div>
   </div>
 </div>
@@ -515,7 +549,7 @@
   function newState(){
     return {score:0, served:0, level:1, combo:0, bestCombo:0, lives:3, customers:[null,null,null],
       plate:{f:null, s:null, t:null}, regular:null, regularCD:6, spawnT:0.8, time:0, wave:null, lastWaveAt:0, babciaCD:8,
-      running:true, over:false, paused:false};
+      running:true, over:false, paused:false, log:[]};
   }
   function unlocked(){ return FILLINGS.filter(function(f){ return f.unlock <= S.level; }); }
   function comboMult(c){ return Math.min(3, 1 + 0.5 * Math.floor(c / 3)); }
@@ -701,7 +735,7 @@
       const speed = Math.round(100 * c.p / c.pmax);
       const tip = c.type === "babcia" ? 250 : (c.type === "regular" && !c.firstVisit) ? 150 : 0;
       const pts = Math.round((100 + speed) * mult * (S.wave ? 2 : 1) + tip);
-      S.score += pts; S.combo++; S.bestCombo = Math.max(S.bestCombo, S.combo); S.served++;
+      logOrder(pts); S.score += pts; S.combo++; S.bestCombo = Math.max(S.bestCombo, S.combo); S.served++;
       showMsg(slot, c.type === "babcia" ? "Perfect, kochanie! +250 tip" : tip ? "You remembered! +150 tip" : c.type === "regular" ? "See you next time!" : pick(HAPPY), true);
       floatText(slot, "+" + pts);
       leave(slot, true); sfx("serve");
@@ -711,6 +745,11 @@
       leave(slot, false); loseLife();
     }
     clearPlate(); renderHUD();
+  }
+  // Per-order log sent with a leaderboard submission so the server can check the score adds up.
+  function logOrder(pts){
+    const prev = S.log.length ? S.log[S.log.length - 1].t : -1;
+    S.log.push({t: Math.max(Math.round(S.time * 1000), prev + 1), pts: pts});
   }
   function timeout(slot){
     const c = S.customers[slot];
@@ -815,10 +854,111 @@
     $("finalRank").textContent = rankFor(S.score);
     $("statServed").textContent = S.served; $("statCombo").textContent = S.bestCombo; $("statLevel").textContent = S.level;
     const bl = $("bestLine");
-    bl.textContent = isNew ? (best ? "New personal best!" : "Your first score on the board.") : "Your best: " + best.toLocaleString("en-GB");
+    bl.textContent = isNew ? (best ? "New personal best!" : "Your first score!") : "Your best: " + best.toLocaleString("en-GB");
     bl.classList.toggle("new", isNew);
+    Host.onGameOver({score: S.score, orders: S.served, bestCombo: S.bestCombo, level: S.level,
+      durationMs: Math.max(Math.round(S.time * 1000), S.log.length ? S.log[S.log.length - 1].t : 0), log: S.log.slice()});
     $("overScreen").classList.remove("hidden");
   }
+
+  /* ---------- Wix host bridge ----------
+     When the game runs inside the Embed code element on the Rogi site, the page code
+     (wix/page/rogi-the-game.js) answers these messages. Played on its own, the game
+     works exactly as before and the leaderboard stays hidden.
+     Messages are JSON strings: game -> page {source:"rogi-game", type}, page -> game {source:"rogi-host", type}. */
+  const Host = (function(){
+    const embedded = window.parent && window.parent !== window;
+    let hostOrigin = null, lastGame = null, submitted = false, myNick = null, reqId = 0, pendingReq = null, pendingTimer = null;
+    const ERRORS = {
+      nickname_length: "Nickname needs 2 to 16 characters.",
+      nickname_chars: "Nickname can use letters, numbers, spaces and . _ ' - only.",
+      email: "That email doesn't look right.",
+      too_fast: "Hang on a few seconds before submitting again.",
+      implausible: "That score couldn't be checked, so it wasn't saved.",
+      bad_game: "That score couldn't be checked, so it wasn't saved.",
+      unavailable: "The leaderboard isn't reachable right now. Try again in a moment.",
+      timeout: "The leaderboard isn't reachable right now. Try again in a moment."
+    };
+
+    function post(type, data){
+      if (!embedded) return;
+      const msg = JSON.stringify(Object.assign({source: "rogi-game", type: type}, data || {}));
+      // Until the page has said hello we only send "ready", which carries no personal data.
+      window.parent.postMessage(msg, hostOrigin || "*");
+    }
+    function esc(t){ return String(t).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+
+    function renderBoard(lb){
+      const box = $("lbBox"), list = $("lbList");
+      box.classList.remove("hidden");
+      const entries = (lb && lb.entries) || [];
+      if (lb && lb.error) { list.innerHTML = '<li class="empty">Leaderboard unavailable right now.</li>'; return; }
+      if (!entries.length) { list.innerHTML = '<li class="empty">No scores yet. Be the first!</li>'; return; }
+      list.innerHTML = entries.map(function(e){
+        const me = myNick && e.nickname === myNick ? " me" : "";
+        return '<li class="' + me + '"><span class="r">' + e.rank + '</span><span class="n">' + esc(e.nickname) + '</span><span class="s">' +
+          Number(e.score).toLocaleString("en-GB") + '</span></li>';
+      }).join("");
+    }
+    function setBusy(v){ $("submitBtn").disabled = v; $("submitBtn").textContent = v ? "Saving…" : "Save my score"; }
+    function showErr(code){ $("submitErr").textContent = code ? (ERRORS[code] || ERRORS.unavailable) : ""; }
+
+    function onSubmitResult(m){
+      if (!pendingReq || m.requestId !== pendingReq) return;
+      pendingReq = null; clearTimeout(pendingTimer); setBusy(false);
+      const r = m.result || {};
+      if (!r.ok) { showErr(r.error || "unavailable"); return; }
+      submitted = true;
+      $("submitForm").classList.add("hidden");
+      const note = $("lbNote");
+      note.textContent = r.improved
+        ? "You're on the board at #" + r.rank + "!"
+        : "Saved. Your best this competition is still " + Number(r.best).toLocaleString("en-GB") + " (#" + r.rank + ").";
+      note.classList.remove("hidden");
+      // Remember the nickname only. The email is never stored on the device.
+      try { localStorage.setItem("rogiRushNick", myNick); } catch(e) {}
+    }
+
+    window.addEventListener("message", function(ev){
+      if (!embedded || ev.source !== window.parent) return;
+      let m; try { m = typeof ev.data === "string" ? JSON.parse(ev.data) : ev.data; } catch(e) { return; }
+      if (!m || m.source !== "rogi-host") return;
+      if (!hostOrigin && ev.origin && ev.origin !== "null") hostOrigin = ev.origin;
+      if (ev.origin !== hostOrigin) return;
+      if (m.type === "hello") { $("startFine").textContent = "Top score wins free dumplings. See the page for the rules."; $("overFine").textContent = ""; }
+      else if (m.type === "leaderboard") renderBoard(m);
+      else if (m.type === "submitResult") onSubmitResult(m);
+    });
+
+    if (embedded) {
+      $("submitForm").addEventListener("submit", function(e){
+        e.preventDefault();
+        if (!lastGame || submitted || pendingReq || !hostOrigin) return;
+        const nick = $("nickInput").value.replace(/\s+/g, " ").trim(), email = $("emailInput").value.trim();
+        if (nick.length < 2 || nick.length > 16) { showErr("nickname_length"); return; }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { showErr("email"); return; }
+        showErr(null); setBusy(true); myNick = nick;
+        pendingReq = "r" + (++reqId);
+        pendingTimer = setTimeout(function(){ if (pendingReq) { pendingReq = null; setBusy(false); showErr("timeout"); } }, 12000);
+        post("submitScore", {requestId: pendingReq, entry: {nickname: nick, email: email, marketingOptIn: $("optInput").checked, game: lastGame}});
+      });
+      try { $("nickInput").value = localStorage.getItem("rogiRushNick") || ""; } catch(e) {}
+      post("ready");
+    }
+
+    return {
+      onGameOver: function(game){
+        if (!embedded) return;
+        lastGame = game; submitted = false; pendingReq = null; setBusy(false); showErr(null);
+        $("lbNote").classList.add("hidden");
+        // The opt-in is always unticked at the start (UK GDPR), even if it was ticked before.
+        $("optInput").checked = false;
+        $("submitForm").classList.toggle("hidden", !hostOrigin || game.orders === 0);
+        if (hostOrigin) post("getLeaderboard");
+      }
+    };
+  })();
+
   $("playBtn").addEventListener("click", startGame);
   $("againBtn").addEventListener("click", startGame);
 
