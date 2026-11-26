@@ -67,6 +67,6 @@ Concept doc (background reading): https://claude.ai/artifact/SwgVoHhgp52a7zexbBP
 
 ## Before release
 
-- Remove the test hook `window.__rogi` at the bottom of the script in `index.html`.
+- ~~Remove the test hook `window.__rogi`~~ (done 2026-11-26).
 - Test on a real iPhone and Android phone: tap accuracy, sound only starting after the first tap, pause on tab switch.
 - Ask Joe before publishing anything to the live Wix site.
