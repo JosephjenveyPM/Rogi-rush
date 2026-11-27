@@ -151,6 +151,25 @@
     .grid.four .btn svg{width:32px;height:18px}
   }
 
+  /* Tighter ingredient rows, added by fitControls() only when the buttons would not fit
+     (e.g. once Apple and later fillings wrap the rows onto a second line on a phone). */
+  #app.tight1 .footer{margin-top:auto;padding-top:4px}
+  #app.tight1 .footer svg{height:30px}
+  #app.tight1 .footer img{height:22px;bottom:3px}
+  #app.tight1 .row h3{margin:3px 0 3px -10px;padding:1px 12px;font-size:11px}
+  #app.tight1 .grid{gap:4px}
+  #app.tight1 .btn{min-height:34px;padding:2px 5px}
+  #app.tight1 .grid.four .btn{padding:2px 2px}
+  #app.tight1 .grid.four .btn svg{width:28px;height:15px}
+  #app.tight2 .stall{height:210px}
+  #app.tight2 .slots{top:36px}
+  #app.tight2 .prep{padding:3px 8px}
+  #app.tight2 .plate svg{width:68px;height:38px}
+  #app.tight2 .btn{min-height:31px;font-size:12px}
+  #app.tight2 .btn svg{width:24px;height:17px}
+  #app.tight2 .footer svg{height:22px}
+  #app.tight2 .footer img{height:17px;bottom:2px}
+
   /* ---------- Overlays ---------- */
   .overlay{position:absolute;inset:0;z-index:20;background:var(--cream);color:var(--ink);display:flex;flex-direction:column;
     padding:26px 24px;overflow-y:auto;-webkit-overflow-scrolling:touch}
@@ -606,7 +625,19 @@
     h += '</div></div>' + FOOTER;
     $("controls").innerHTML = h;
     lastUnlockId = null; // the "new" glow plays once, on the render that introduces the flavour
+    fitControls();
   }
+  // Step the layout down (tight1, then tight2) until every ingredient button is on screen.
+  function fitControls(){
+    const app = $("app"), c = $("controls");
+    app.classList.remove("tight1", "tight2");
+    const fits = function(){ return c.scrollHeight <= c.clientHeight + 1; };
+    if (fits()) return;
+    app.classList.add("tight1");
+    if (fits()) return;
+    app.classList.add("tight2");
+  }
+  window.addEventListener("resize", function(){ if (S && S.running) fitControls(); });
   function updateControlStates(){
     document.querySelectorAll("#controls .btn").forEach(function(b){
       b.classList.toggle("on", S.plate[b.dataset.kind] === b.dataset.id);
